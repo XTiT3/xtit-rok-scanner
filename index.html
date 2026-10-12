@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rise of Kingdoms #4161 - Scanner Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; }
+    .card { background-color: #111827; border: 1px solid #1f2937; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+      <div>
+        <h1 class="text-3xl font-bold text-yellow-500">KINGDOM #4161</h1>
+        <p class="text-gray-400">Live Governor & Leaderboard Intelligence</p>
+      </div>
+      <div id="status" class="bg-green-900 text-green-300 px-4 py-2 rounded-lg text-sm font-semibold">
+        Dashboard Active
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="card p-5 rounded-xl">
+        <p class="text-gray-400 text-sm">Total Governors Scanned</p>
+        <p id="total-govs" class="text-3xl font-bold text-white mt-1">0</p>
+      </div>
+      <div class="card p-5 rounded-xl">
+        <p class="text-gray-400 text-sm">Total Power</p>
+        <p id="total-power" class="text-3xl font-bold text-yellow-400 mt-1">0</p>
+      </div>
+      <div class="card p-5 rounded-xl">
+        <p class="text-gray-400 text-sm">Total Kill Points</p>
+        <p id="total-kp" class="text-3xl font-bold text-red-400 mt-1">0</p>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="card rounded-xl overflow-hidden">
+      <table class="w-full text-left text-sm text-gray-300">
+        <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
+          <tr>
+            <th class="px-6 py-4">Rank</th>
+            <th class="px-6 py-4">Avatar</th>
+            <th class="px-6 py-4">Governor Name</th>
+            <th class="px-6 py-4">ID</th>
+            <th class="px-6 py-4">Power</th>
+            <th class="px-6 py-4">Kill Points</th>
+          </tr>
+        </thead>
+        <tbody id="governor-list" class="divide-y divide-gray-800">
+          <tr>
+            <td colspan="6" class="text-center py-8 text-gray-500">Loading scan data from data.json...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function loadData() {
+      try {
+        const response = await fetch('data.json');
+        const data = await response.json();
+        
+        let totalPower = 0;
+        let totalKP = 0;
+        const tbody = document.getElementById('governor-list');
+        tbody.innerHTML = '';
+
+        data.forEach(gov => {
+          totalPower += gov.power || 0;
+          totalKP += gov.kill_points || 0;
+
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-gray-800/50 transition';
+          row.innerHTML = `
+            <td class="px-6 py-4 font-bold text-yellow-500">#${gov.rank}</td>
+            <td class="px-6 py-4">
+              <img src="${gov.avatar || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full border border-gray-700 object-cover" onerror="this.src='https://via.placeholder.com/40'">
+            </td>
+            <td class="px-6 py-4 font-semibold text-white">${gov.name}</td>
+            <td class="px-6 py-4 text-gray-400">${gov.governor_id}</td>
+            <td class="px-6 py-4 text-yellow-400 font-medium">${(gov.power || 0).toLocaleString()}</td>
+            <td class="px-6 py-4 text-red-400 font-medium">${(gov.kill_points || 0).toLocaleString()}</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        document.getElementById('total-govs').innerText = data.length;
+        document.getElementById('total-power').innerText = totalPower.toLocaleString();
+        document.getElementById('total-kp').innerText = totalKP.toLocaleString();
+      } catch (err) {
+        document.getElementById('governor-list').innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-8 text-yellow-500">
+              No <code>data.json</code> found yet! Run <b>python scanner.py</b> first to generate scan data.
+            </td>
+          </tr>`;
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
