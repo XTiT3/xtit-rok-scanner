@@ -1,1 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XTiT - Kingdom #4161 Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1220; --card: #131c2e; --line: #243049;
+      --text: #e6ebf5; --muted: #8b97b0;
+      --blue: #3b82f6; --green: #22c55e; --red: #ef4444; --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; line-height: 1.5; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
 
+    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+    .brand h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .brand .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; background: rgba(34,197,94,0.15); color: var(--green); }
+    .status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; transition: transform 0.15s ease, border-color 0.15s ease; }
+    .stat:hover { transform: translateY(-2px); border-color: #33415e; }
+    .stat::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .stat.blue::after { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .stat.green::after { background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .stat.amber::after { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .stat .label { color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+    .stat .value { font-size: 28px; font-weight: 700; margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .stat.blue .value { color: #60a5fa; }
+    .stat.green .value { color: #4ade80; }
+    .stat.amber .value { color: #fbbf24; }
+
+    /* Scan selector bar */
+    .scanbar {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .scanbar .left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .scanbar label { color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+    .scanbar select {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0f1729;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      min-width: 260px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .scanbar select:focus { border-color: var(--blue); }
+    .updated {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .updated b { color: var(--text); }
+    .updated .rel {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(59,130,246,0.15);
+      color: #60a5fa;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+
+    /* Quick filter chips */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chip:hover { border-color: #3a4a6b; }
+    .chip.on { background: rgba(59,130,246,0.15); border-color: var(--blue); color: #60a5fa; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+    .search { flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s ease; }
+    .search:focus { border-color: var(--blue); }
+    .search::placeholder { color: var(--muted); }
+    .btn { padding: 12px 20px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-weight: 600; font-size: 14px; font-family: inherit; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.15s ease; }
+    .btn:hover { border-color: #3a4a6b; transform: translateY(-1px); }
+    .btn.on { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.1); }
+
+    .tablebox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 14px 18px; text-align: left; }
+    th { background: #0f1729; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; position: sticky; top: 0; z-index: 5; }
+    td { border-top: 1px solid var(--line); font-size: 14px; }
+    th.num, td.num { text-align: right; }
+    tbody tr { transition: background 0.1s ease; }
+    tbody tr:hover { background: rgba(59,130,246,0.06); }
+    tbody tr.flag { background: rgba(245,158,11,0.06); }
+    tbody tr.flag:hover { background: rgba(245,158,11,0.12); }
+
+    .rank { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; height: 28px; padding: 0 8px; border-radius: 8px; background: #1c2842; font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .rank.r1 { background: linear-gradient(135deg, #fbbf24, #d4a017); color: #1a1300; }
+    .rank.r2 { background: linear-gradient(135deg, #cbd5e1, #94a3b8); color: #10151f; }
+    .rank.r3 { background: linear-gradient(135deg, #d97706, #b9773e); color: #1a0d00; }
+
+    .id { font-family: 'Consolas', 'Monaco', monospace; color: #c3cce0; font-size: 13px; letter-spacing: 0.02em; }
+    .power { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; color: #fbbf24; }
+    tr.flag .power { color: var(--amber); }
+
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-right: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .tag.check { background: rgba(245,158,11,0.18); color: var(--amber); }
+    .tag.fixed { background: rgba(59,130,246,0.18); color: #60a5fa; }
+
+    .empty, .loading { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
+    .empty code { background: #1c2842; padding: 2px 8px; border-radius: 4px; color: #60a5fa; font-family: 'Consolas', monospace; }
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--line); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hint { color: var(--muted); font-size: 13px; margin-top: 16px; text-align: center; }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 22px; }
+      th, td { padding: 10px 12px; font-size: 13px; }
+      .stat .value { font-size: 22px; }
+      .scanbar select { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>XTiT · Kingdom #4161</h1>
+        <div class="sub">Live Governor & Leaderboard Intelligence</div>
+      </div>
+      <div class="status" id="status">Dashboard Active</div>
+    </header>
+
+    <!-- SCAN SELECTOR -->
+    <div class="scanbar">
+      <div class="left">
+        <label for="scan-select">Scan history</label>
+        <select id="scan-select">
+          <option value="latest">Latest scan</option>
+        </select>
+      </div>
+      <div class="updated" id="updated"></div>
+    </div>
+
+    <!-- QUICK FILTER CHIPS -->
+    <div class="chips" id="chips">
+      <button class="chip on" data-range="all" type="button">All time</button>
+      <button class="chip" data-range="today" type="button">Today</button>
+      <button class="chip" data-range="week" type="button">This week</button>
+      <button class="chip" data-range="month" type="button">This month</button>
+      <button class="chip" data-range="old" type="button">Older than a month</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat blue">
+        <div class="label">Governors Scanned</div>
+        <div class="value" id="total-govs">—</div>
+      </div>
+      <div class="stat amber">
+        <div class="label">Total Power</div>
+        <div class="value" id="total-power">—</div>
+      </div>
+      <div class="stat green">
+        <div class="label">Average Power</div>
+        <div class="value" id="avg-power">—</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <input class="search" type="search" id="q" placeholder="Search by rank or governor ID...">
+      <button class="btn" id="flagbtn" type="button">⚠ Only rows to check</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="tablebox">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px;">Rank</th>
+            <th>Governor ID</th>
+            <th class="num" style="width:200px;">Power</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="3" class="loading"><div class="spinner"></div><div style="margin-top:12px;">Loading scan data...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="hint" id="hint"></div>
+  </div>
+
+  <script>
+    const RISE_TOLERANCE = 0.10;
+    let SCAN_INDEX = [];      // from scans/index.json
+    let CURRENT_DATA = null;  // the array currently displayed
+    let CURRENT_SCAN = null;  // { file, date, ... } or null for latest
+    let onlyFlagged = false;
+    let activeRange = 'all';
+
+    /* ---------- helpers ---------- */
+    function relTime(isoDate) {
+      const diff = Date.now() - new Date(isoDate).getTime();
+      const m = Math.floor(diff / 60000);
+      if (m < 1) return 'just now';
+      if (m < 60) return m + ' min ago';
+      const h = Math.floor(m / 60);
+      if (h < 24) return h + ' hour' + (h === 1 ? '' : 's') + ' ago';
+      const d = Math.floor(h / 24);
+      if (d < 30) return d + ' day' + (d === 1 ? '' : 's') + ' ago';
+      const mo = Math.floor(d / 30);
+      return mo + ' month' + (mo === 1 ? '' : 's') + ' ago';
+    }
+
+    function fmtDate(isoDate) {
+      const d = new Date(isoDate);
+      return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function rangeMatches(scanDateIso, range) {
+      if (range === 'all') return true;
+      const now = Date.now();
+      const diff = now - new Date(scanDateIso).getTime();
+      const day = 24 * 60 * 60 * 1000;
+      if (range === 'today') return diff < day;
+      if (range === 'week')  return diff < 7 * day;
+      if (range === 'month') return diff < 30 * day;
+      if (range === 'old')   return diff >= 30 * day;
+      return true;
+    }
+
+    /* ---------- scan index ---------- */
+    async function loadIndex() {
+      try {
+        const res = await fetch('scans/index.json?t=' + Date.now());
+        if (!res.ok) return [];
+        const idx = await res.json();
+        if (!Array.isArray(idx)) return [];
+        return idx;
+      } catch (e) { return []; }
+    }
+
+    function buildScanOptions() {
+      const sel = document.getElementById('scan-select');
+      // keep the "Latest scan" option, remove dated ones
+      sel.innerHTML = '<option value="latest">Latest scan</option>';
+      SCAN_INDEX.forEach(entry => {
+        const opt = document.createElement('option');
+        opt.value = entry.file;
+        opt.textContent = `${fmtDate(entry.date)} · ${entry.count} governors`;
+        opt.dataset.date = entry.date;
+        sel.appendChild(opt);
+      });
+    }
+
+    /* ---------- data load ---------- */
+    async function loadScan(file) {
+      const tbody = document.getElementById('rows');
+      tbody.innerHTML = '<tr><td colspan="3" class="loading"><div class="spinner"></div><div style="margin-top:12px;">Loading scan...</div></td></tr>';
+      try {
+        const url = (file === 'latest' ? 'data.json' : 'scans/' + file) + '?t=' + Date.now();
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) throw new Error('Empty data');
+        CURRENT_DATA = data;
+        CURRENT_SCAN = SCAN_INDEX.find(e => e.file === file) || null;
+        render();
+      } catch (err) {
+        CURRENT_DATA = null;
+        tbody.innerHTML =
+          '<tr><td colspan="3" class="empty">' +
+          '<div style="font-size:16px;margin-bottom:8px;color:var(--amber);font-weight:600;">Could not load scan data</div>' +
+          '<div>Run <code>python scanner.py 300</code> to generate the first scan.</div>' +
+          '</td></tr>';
+        document.getElementById('updated').innerText = '';
+        document.getElementById('hint').innerText = '';
+      }
+    }
+
+    /* ---------- render ---------- */
+    function render() {
+      const tbody = document.getElementById('rows');
+      const data = [...CURRENT_DATA].sort((a, b) => a.rank - b.rank);
+
+      let totalPower = 0, flags = 0, prevPower = null;
+      const frag = document.createDocumentFragment();
+
+      data.forEach(r => {
+        totalPower += r.power || 0;
+        const suspect = !!r.check;
+        const high = prevPower !== null && r.power > prevPower * (1 + RISE_TOLERANCE);
+        const flagged = suspect || high;
+        if (flagged) flags++;
+        if (!suspect) prevPower = r.power;
+
+        const rankCls = r.rank <= 3 ? ' r' + r.rank : '';
+        const tag = flagged
+          ? '<span class="tag check">check</span>'
+          : (r.fixed ? '<span class="tag fixed">fixed</span>' : '');
+
+        const tr = document.createElement('tr');
+        if (flagged) tr.classList.add('flag');
+        tr.innerHTML =
+          `<td><span class="rank${rankCls}">${r.rank}</span></td>` +
+          `<td class="id">${r.id ?? '—'}</td>` +
+          `<td class="num"><span class="power">${tag}${(r.power || 0).toLocaleString()}</span></td>`;
+        frag.appendChild(tr);
+      });
+
+      tbody.innerHTML = '';
+      tbody.appendChild(frag);
+
+      document.getElementById('total-govs').innerText = data.length;
+      document.getElementById('total-power').innerText = totalPower.toLocaleString();
+      document.getElementById('avg-power').innerText = Math.floor(totalPower / data.length).toLocaleString();
+
+      // Updated badge
+      const scanDateIso = CURRENT_SCAN ? CURRENT_SCAN.date : (SCAN_INDEX[0] ? SCAN_INDEX[0].date : new Date().toISOString());
+      document.getElementById('updated').innerHTML =
+        `Last updated: <b>${fmtDate(scanDateIso)}</b> <span class="rel">${relTime(scanDateIso)}</span>`;
+
+      // Hint
+      const lastRank = data[data.length - 1].rank;
+      document.getElementById('hint').innerHTML =
+        `Showing <b>${data.length}</b> governors · last rank <b>#${lastRank}</b>` +
+        (flags > 0
+          ? ` · <span style="color:var(--amber)">${flags} row${flags === 1 ? '' : 's'} to verify</span>`
+          : ' · <span style="color:var(--green)">all rows consistent</span>');
+
+      applyFilter();
+    }
+
+    /* ---------- filters ---------- */
+    function applyFilter() {
+      const term = document.getElementById('q').value.trim().toLowerCase();
+      document.querySelectorAll('#rows tr').forEach(tr => {
+        if (tr.querySelector('.loading') || tr.querySelector('.empty')) return;
+        const text = tr.textContent.toLowerCase();
+        const matchSearch = term === '' || text.includes(term);
+        const matchFlag = !onlyFlagged || tr.classList.contains('flag');
+        tr.style.display = (matchSearch && matchFlag) ? '' : 'none';
+      });
+    }
+
+    /* ---------- init ---------- */
+    async function init() {
+      SCAN_INDEX = await loadIndex();
+      buildScanOptions();
+
+      // Apply default "All time" chip
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+      document.querySelector('[data-range="all"]').classList.add('on');
+
+      await loadScan('latest');
+
+      document.getElementById('scan-select').addEventListener('change', e => {
+        loadScan(e.target.value);
+      });
+
+      document.getElementById('q').addEventListener('input', applyFilter);
+      document.getElementById('flagbtn').addEventListener('click', function () {
+        onlyFlagged = !onlyFlagged;
+        this.classList.toggle('on', onlyFlagged);
+        applyFilter();
+      });
+
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          activeRange = chip.dataset.range;
+          document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+          chip.classList.add('on');
+
+          // Filter the scan dropdown based on range
+          const sel = document.getElementById('scan-select');
+          Array.from(sel.options).forEach(opt => {
+            if (opt.value === 'latest') {
+              opt.hidden = !rangeMatches(SCAN_INDEX[0]?.date || new Date().toISOString(), activeRange);
+              return;
+            }
+            opt.hidden = !rangeMatches(opt.dataset.date, activeRange);
+          });
+
+          // If current selection is hidden, fall back to latest
+          if (sel.selectedOptions[0]?.hidden) {
+            sel.value = 'latest';
+            loadScan('latest');
+          }
+        });
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
