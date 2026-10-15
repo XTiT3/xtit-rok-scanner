@@ -37,6 +37,23 @@
     .stat.green .value { color: #4ade80; }
     .stat.amber .value { color: #fbbf24; }
 
+    /* Ownership notice */
+    .notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      font-size: 13.5px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .notice b { color: #93c5fd; }
+    .notice-icon { font-size: 18px; line-height: 1; }
+
     /* Scan selector bar */
     .scanbar {
       background: var(--card);
@@ -153,6 +170,16 @@
       </div>
       <div class="status" id="status">Dashboard Active</div>
     </header>
+
+    <!-- OWNERSHIP NOTICE -->
+    <div class="notice">
+      <span class="notice-icon">🔒</span>
+      <div>
+        <b>Scanner controlled by XTiT.</b>
+        Scanning runs automatically from XTiT's computer — this website is a read-only viewer.
+        No one else can trigger, pause, or modify a scan.
+      </div>
+    </div>
 
     <!-- SCAN SELECTOR -->
     <div class="scanbar">
